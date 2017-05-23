@@ -15,7 +15,7 @@ public class TestMoves {
     }
 
     public Boolean testMove(String move) {
-        System.out.print ("\nTesting " + move + "...");
+        //System.out.print ("\nTesting " + move + "...");
         board.resetPosition();
         try {
             while (board.position.getX() < board.board.length && board.position.getY() < board.board[0].length) {
@@ -42,10 +42,10 @@ public class TestMoves {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Failed");
+            //System.out.println("Failed");
             return false;
         }
-        System.out.println("Success!");
+        //System.out.println("Success!");
         return true;
     }
 

@@ -42,51 +42,56 @@ public class Board {
 
         if (print) {
             System.out.println("Unprocessed Board:");
-            printBoard();
+            printBoard(false);
         }
 
         preProcessBoard(0,0);
 
         if (print) {
             System.out.println("Processed Board:");
-            printBoard();
+            printBoard(false);
         }
 
-        removeBombsNotNeededToCheck();
+        //removeBombsNotNeededToCheck();
 
 
     }
 
     private void removeBombsNotNeededToCheck() {
-        boolean removeBomb = false,removeBombX1 = false, removeBombX2 = false,removeBombY1 = false, removeBombY2 = false;
+        boolean removeBomb = true,removeBombX1 = true, removeBombX2 = true,removeBombY1 = true, removeBombY2 = true;
         for (Iterator<Point> it = bombs.iterator(); it.hasNext();) {
+            removeBomb = true;
+            removeBombX1 = true;
+            removeBombX2 = true;
+            removeBombY1 = true;
+            removeBombY2 = true;
             Point bomb = it.next();
             for (int x =0;x < bomb.getX();x++) {
                 if (board[x][(int)bomb.getY()] == 1) {
-                    removeBombX1 = true;
+                    removeBombX1 = false;
                     break;
                 }
             }
             for (int x = (int)bomb.getX()+1;x < board.length;x++) {
-                if (board[x][(int)bomb.getY()] == 1 && removeBomb) {
-                    removeBombX2 = true;
+                if (board[x][(int)bomb.getY()] == 1) {
+                    removeBombX2 = false;
                     break;
                 }
             }
 
             for (int y =0;y < bomb.getY();y++) {
                 if (board[(int)bomb.getX()][y] == 1) {
-                    removeBombY1 = true;
+                    removeBombY1 = false;
                     break;
                 }
             }
             for (int y =(int)bomb.getY()+1;y < board[0].length;y++) {
                 if (board[(int)bomb.getX()][y] == 1) {
-                    removeBombY1 = true;
+                    removeBombY2 = false;
                     break;
                 }
             }
-            if (!(removeBombX1 && removeBombX2) && !(removeBombY1 && removeBombY2)) {
+            if ((!removeBombX1 && !removeBombX2) || (!removeBombY1 && !removeBombY2)) {
                 it.remove();
                 continue;
             }
@@ -144,8 +149,8 @@ public class Board {
         return false;
     }
 
-    public void printBoard() {
+    public void printBoard(boolean includeBorders) {
         BoardPrinter boardPrinter = new BoardPrinter(this);
-        boardPrinter.printBoard();
+        boardPrinter.printBoard(includeBorders);
     }
 }

@@ -2,6 +2,7 @@ package com.kl.runawayrobot;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Node;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -20,7 +21,8 @@ public class main {
 
     public static void start (String url) throws Exception {
         Document doc = Jsoup.connect(url).get();
-        String flashVars = doc.select("object").first().children().attr("value");
+        String flashVars = findObject(doc);
+        //.select("object").first().children().attr("value");
 
         Map<String, String> params = getParams(flashVars);
         /*Map<String, String> params = new HashMap<>();
@@ -40,11 +42,32 @@ public class main {
 
         CalculateMoves movesToMake = new CalculateMoves(Integer.valueOf(params.get("FVinsMin")), Integer.valueOf(params.get("FVinsMax")), board, testingBoard);
 
-        String moveToSend = movesToMake.testRemainingPossible();
+        String moveToSend = movesToMake.result != null ? movesToMake.result : movesToMake.testRemainingPossible();
 
         //String moveToSend = movesToMake.getTrieSolution();
 
         start(BASE_URL + "&path="+moveToSend);
+    }
+
+    private static String findObject(Node node) {
+        String returnVal = null;
+        for (int i = 0; i < node.childNodes().size();) {
+            Node child = node.childNode(i);
+            if (child.nodeName().equals("#comment")) {
+                if (child.toString().indexOf("FlashVars VALUE=\"") > 0) {
+                    String tmpString = child.toString().substring(child.toString().indexOf("FlashVars VALUE=\"") + 17);
+                    return tmpString.substring(0, tmpString.indexOf("\""));
+                }
+            } else {
+                returnVal = findObject(child);
+                if (returnVal != null) {
+                    return returnVal;
+                } else {
+                    i++;
+                }
+            }
+        }
+        return returnVal;
     }
 
     public static Map<String, String> getParams (String inputString) {

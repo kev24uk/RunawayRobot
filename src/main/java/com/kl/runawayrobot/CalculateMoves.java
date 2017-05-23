@@ -1,5 +1,7 @@
 package com.kl.runawayrobot;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+
 import java.awt.*;
 import java.io.IOException;
 import java.util.*;
@@ -29,6 +31,7 @@ public class CalculateMoves {
 
     TestMoves test;
     private boolean stopThreads = false;
+    public String result = null;
 
     public enum Move {
         NOT_CHECKED, FAILED, SUCCEEDED;
@@ -41,25 +44,47 @@ public class CalculateMoves {
         this.test = new TestMoves(testingBoard);
         this.numberOfPossibleRemaining = new AtomicInteger(0);
         generatePointsToCheck();
-        checkGeneratedPoints();
-
-
-        //pointsToCheck.forEach(point -> generateMovesForPoint(point));
-
-        //generateAvailableMoves("",0,0);
-        this.numberOfPossibleRemaining.set(availableMoves.size());
-        this.prevNumberOfPossibleRemainingPrinted = new AtomicInteger(numberOfPossibleRemaining.get());
-        removeImpossibleMoves();
+        try {
+            checkGeneratedPoints();
+        } catch (PuzzleSolvedException e) {
+            this.result = e.getMessage();
+        }
     }
 
-    private void checkGeneratedPoints() throws InterruptedException{
-        int THREAD_COUNT = 100;
+    private void checkGeneratedPoints() throws InterruptedException, PuzzleSolvedException, IOException {
+        /*int THREAD_COUNT = 8;
         ThreadPoolExecutor pool = new ThreadPoolExecutor(THREAD_COUNT, THREAD_COUNT, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
-        pointsToCheck.forEach(point -> pool.execute(new Runnable() { public void run() {generateMovesForPoint(point);}}));
+        pointsToCheck.forEach(point -> pool.execute(new Runnable() {
+            public void run() {
+                generateMovesForPoint(point);
+                try {
+                    removeImpossibleMoves();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
         pool.shutdown();
-        pool.awaitTermination(30, TimeUnit.SECONDS);
-
+        pool.awaitTermination(30, TimeUnit.SECONDS);*/
+        for (Point point : pointsToCheck) {
+            generateMovesForPoint(point);
+            this.numberOfPossibleRemaining.set(availableMoves.size());
+            this.prevNumberOfPossibleRemainingPrinted = new AtomicInteger(numberOfPossibleRemaining.get());
+            stopThreads = false;
+            removeImpossibleMoves();
+            System.out.println();
+            System.out.print("Testing " + numberOfPossibleRemaining.toString() + " moves...");
+            String result = testRemainingPossible();
+            if (result != null) {
+                System.out.println("Success: " + result);
+                throw new PuzzleSolvedException(result);
+            } else {
+                System.out.println("Failed");
+            }
+        }
     }
 
     private void generatePointsToCheck() {
@@ -204,40 +229,18 @@ public class CalculateMoves {
                             System.out.write(("\rRemaining Possible Moves: " + String.valueOf(numberOfPossibleRemaining)).getBytes());
                             prevNumberOfPossibleRemainingPrinted.set(numberOfPossibleRemaining.get());
                         }
+                        if (numberOfPossibleRemaining.get() < 100) {
+                            System.out.write(("\rRemaining Possible Moves: " + String.valueOf(numberOfPossibleRemaining)).getBytes());
+                            prevNumberOfPossibleRemainingPrinted.set(numberOfPossibleRemaining.get());
+                            stopThreads = true;
+                        }
                     } catch (IOException e) {}
-                    if (numberOfPossibleRemaining.get() < 100) {
-                        stopThreads = true;
-                    }
                     //entry.setValue(Move.FAILED);
                 }
             } else {
                 break;
             }
         }
-
-        /*availableMoves.entrySet()
-                //.stream()
-                //.filter(entry -> entry.getKey().length() >= moveToFind.length())
-                .forEach(entry -> {
-                    if (!stopThreads) {
-                        char[] a = moveToFind.toCharArray();
-                        String temp = entry.getKey();
-                        String loopedMove = temp;
-                        for (double i = 0; i < Math.ceil((double) moveToFind.length() / temp.length()); i++) {
-                            loopedMove = loopedMove + temp;
-                        }
-
-                        char[] b = loopedMove.substring(0, moveToFind.length()).toCharArray();
-
-                        Arrays.sort(a);
-                        Arrays.sort(b);
-
-                        if (Arrays.equals(a, b)) {
-                            entry
-                            entry.setValue(Move.FAILED);
-                        }
-                    }
-                });*/
     }
 
     private boolean notChecked(String moveToFind) {
@@ -299,13 +302,13 @@ public class CalculateMoves {
     }
 
     public String testRemainingPossible() {
-        Object[] movesToTest = availableMoves.entrySet()
-                .stream()
-                .filter(entry -> entry.getValue() == Move.NOT_CHECKED)
-                .toArray();
-        for (Object moveToTest : movesToTest) {
-            if (test.testMove(((Map.Entry<String,Move>)moveToTest).getKey())) {
-                return ((Map.Entry<String,Move>)moveToTest).getKey();
+        Iterator it = availableMoves.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Move> moveToTest = (Map.Entry)it.next();
+            if (test.testMove(moveToTest.getKey())) {
+                return moveToTest.getKey();
+            } else {
+                it.remove();
             }
         }
         return null;
@@ -316,4 +319,8 @@ public class CalculateMoves {
         public NoFurtherMovesException(String message) { super(message); }
     }
 
+    private class PuzzleSolvedException extends Exception {
+        public PuzzleSolvedException() { super(); }
+        public PuzzleSolvedException(String message) { super(message); }
+    }
 }

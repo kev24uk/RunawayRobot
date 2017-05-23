@@ -11,34 +11,38 @@ public class BoardPrinter {
         this.board = boardToPrint.board;
     }
 
-    public void printBoard() {
+    public void printBoard(boolean includeBorders) {
         System.out.println();
         for (int col = 0; col < this.board[0].length; col++) {
-            printRowBorder();
+            if (includeBorders) {printRowBorder();}
             for (int row = 0; row < this.board.length; row++) {
                 switch (board[row][col]) {
                     case 0: //not checked
-                        printCell("o");
+                        printCell("o", includeBorders);
                         break;
                     case 1: //good path
-                        printCell("\033[32m+\033[0m");
+                        printCell("\033[32m+\033[0m", includeBorders);
                         break;
                     case 2: //probably bad
-                        printCell("\033[33m-\033[0m");
+                        printCell("\033[33m-\033[0m", includeBorders);
                         break;
                     case 3:
-                        printCell("\033[31;1mx\033[0m");;
+                        printCell("\033[31;1mx\033[0m", includeBorders);;
                         break;
                 }
 
             }
-            System.out.println("|");
+            if (includeBorders) {System.out.println("|");} else { System.out.println(); }
         }
-        printRowBorder();
+        if (includeBorders) {printRowBorder();}
     }
 
-    public void printCell(String cellContents) {
-        System.out.print("| " + cellContents + " ");
+    public void printCell(String cellContents, boolean includeBorders) {
+        if (includeBorders) {
+            System.out.print("| " + cellContents + " ");
+        } else {
+            System.out.print(cellContents);
+        }
 
 
     }
