@@ -11,6 +11,17 @@ public class BoardPrinter {
         this.board = boardToPrint.board;
     }
 
+    public BoardPrinter(Integer[][] board) {
+        this.board = board;
+    }
+
+    public BoardPrinter() {}
+
+    public void printBoard(Integer[][] board) {
+        this.board = board;
+        printBoard(false);
+    }
+
     public void printBoard(boolean includeBorders) {
         System.out.println();
         for (int col = 0; col < this.board[0].length; col++) {
@@ -27,7 +38,7 @@ public class BoardPrinter {
                         printCell("\033[33m-\033[0m", includeBorders);
                         break;
                     case 3:
-                        printCell("\033[31;1mx\033[0m", includeBorders);;
+                        printCell("\033[31mx\033[0m", includeBorders);
                         break;
                 }
 

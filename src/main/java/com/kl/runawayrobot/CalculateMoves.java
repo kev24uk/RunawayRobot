@@ -75,7 +75,7 @@ public class CalculateMoves {
             this.prevNumberOfPossibleRemainingPrinted = new AtomicInteger(numberOfPossibleRemaining.get());
             stopThreads = false;
             //if (availableMoves.size() > 200000) {removeImpossibleMoves();}
-            /*System.out.println();
+            System.out.println();
             System.out.print("Testing " + numberOfPossibleRemaining.toString() + " moves...");
             String result = testRemainingPossible();
             if (result != null) {
@@ -83,7 +83,7 @@ public class CalculateMoves {
                 throw new PuzzleSolvedException(result);
             } else {
                 System.out.println("Failed");
-            }*/
+            }
         }
     }
 
@@ -112,7 +112,7 @@ public class CalculateMoves {
     }
 
     private void generateMovesForPoint(Point endPoint) {
-        generateMovesForPoint("", endPoint, 0, 0, getSubBoard(endPoint));
+        generateMovesForPoint("", endPoint, 0, 0, getStackedSubBoard(endPoint));
     }
 
     private void generateMovesForPoint(String move, Point endPoint, int Rcount, int Dcount, Integer[][] subBoard) {
@@ -129,7 +129,8 @@ public class CalculateMoves {
         }
     }
 
-    private Integer[][] getSubBoard(Point endPoint) {
+    private Integer[][] getStackedSubBoard(Point endPoint) {
+        BoardPrinter boardPrinter = new BoardPrinter();
         Map<Integer[][], Integer> subBoards = new HashMap<>();
         int looped = 0;
         while (endPoint.getX()*(looped+1) < board.board.length && endPoint.getY()*(looped+1) < board.board[0].length) {
@@ -143,10 +144,39 @@ public class CalculateMoves {
             }
             looped++;
             subBoards.put(subBoard, countGoodSpots);
+            //System.out.println("SubBoard " + looped + ":");
+            //boardPrinter.printBoard(subBoard);
         }
-        int min = Collections.min(subBoards.values());
-        Optional<Map.Entry<Integer[][], Integer>> bestBoard = subBoards.entrySet().stream().filter(entry -> entry.getValue() == min).findFirst();
-        return bestBoard.get().getKey();
+        Integer[][] stackedSubBoard = new Integer[(int)endPoint.getX()+1][(int)endPoint.getY()+1];
+
+        subBoards.entrySet().stream().forEach(entry -> {
+            Integer[][] boardToStack = entry.getKey();
+            for (int y = 0; y < boardToStack[0].length; y++) {
+                for (int x = 0; x < boardToStack.length; x++) {
+                    if (boardToStack[x][y] != 1) {
+                        stackedSubBoard[x][y] = 3;
+                    } else if (stackedSubBoard[x][y] == null){
+                        stackedSubBoard[x][y] = 1;
+                    }
+                }
+            }
+        });
+
+
+        System.out.println("Unprocessed Stacked SubBoard:");
+        boardPrinter.printBoard(stackedSubBoard);
+
+        BoardPreProcessor boardPreProcessor = new BoardPreProcessor();
+        Integer[][] processedStackedSubBoard = boardPreProcessor.preProcessBoard(stackedSubBoard);
+
+        System.out.println("Processed Stacked SubBoard:");
+        boardPrinter.printBoard(processedStackedSubBoard);
+
+
+        //int min = Collections.min(subBoards.values());
+        //Optional<Map.Entry<Integer[][], Integer>> bestBoard = subBoards.entrySet().stream().filter(entry -> entry.getValue() == min).findFirst();
+        //return bestBoard.get().getKey();
+        return stackedSubBoard;
     }
 
 

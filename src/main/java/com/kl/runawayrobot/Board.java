@@ -45,7 +45,8 @@ public class Board {
             printBoard(false);
         }
 
-        preProcessBoard(0,0);
+        BoardPreProcessor boardPreProcessor = new BoardPreProcessor();
+        board = boardPreProcessor.preProcessBoard(board);
 
         if (print) {
             System.out.println("Processed Board:");
@@ -99,25 +100,7 @@ public class Board {
 
     }
 
-    private boolean preProcessBoard(int x, int y) {
-        if (x == board.length || y == board[0].length) {
-            return true;
-        } else if (board[x][y] == 1) {
-            return true;
-        } else if (board[x][y] > 1) {
-            return false;
-        } else {
-            boolean canIGoDown, canIGoRight;
-            board[x][y] = 1;
-            canIGoRight = preProcessBoard(x+1,y);
-            canIGoDown = preProcessBoard(x,y+1);
-            if (!canIGoRight && !canIGoDown) {
-                board[x][y] = 2;
-                return false;
-            }
-            return true;
-        }
-    }
+
 
     public void resetPosition() {
         this.position.setLocation(0,0);
