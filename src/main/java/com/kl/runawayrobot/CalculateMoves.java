@@ -74,8 +74,8 @@ public class CalculateMoves {
             this.numberOfPossibleRemaining.set(availableMoves.size());
             this.prevNumberOfPossibleRemainingPrinted = new AtomicInteger(numberOfPossibleRemaining.get());
             stopThreads = false;
-            removeImpossibleMoves();
-            System.out.println();
+            //if (availableMoves.size() > 200000) {removeImpossibleMoves();}
+            /*System.out.println();
             System.out.print("Testing " + numberOfPossibleRemaining.toString() + " moves...");
             String result = testRemainingPossible();
             if (result != null) {
@@ -83,7 +83,7 @@ public class CalculateMoves {
                 throw new PuzzleSolvedException(result);
             } else {
                 System.out.println("Failed");
-            }
+            }*/
         }
     }
 
@@ -112,21 +112,41 @@ public class CalculateMoves {
     }
 
     private void generateMovesForPoint(Point endPoint) {
-        generateMovesForPoint("", endPoint, 0, 0);
+        generateMovesForPoint("", endPoint, 0, 0, getSubBoard(endPoint));
     }
 
-    private void generateMovesForPoint(String move, Point endPoint, int Rcount, int Dcount) {
-        if (board.board[Rcount][Dcount] == 1) {
+    private void generateMovesForPoint(String move, Point endPoint, int Rcount, int Dcount, Integer[][] subBoard) {
+        if (subBoard[Rcount][Dcount] == 1) {
             if (Dcount < endPoint.getY()) {
-                generateMovesForPoint(move + "D", endPoint, Rcount, Dcount + 1);
+                generateMovesForPoint(move + "D", endPoint, Rcount, Dcount + 1, subBoard);
             }
             if (Rcount < endPoint.getX()) {
-                generateMovesForPoint(move + "R", endPoint, Rcount + 1, Dcount);
+                generateMovesForPoint(move + "R", endPoint, Rcount + 1, Dcount, subBoard);
             }
             if (Rcount == endPoint.getX() && Dcount == endPoint.getY()) {
                 this.availableMoves.put(move, NOT_CHECKED);
             }
         }
+    }
+
+    private Integer[][] getSubBoard(Point endPoint) {
+        Map<Integer[][], Integer> subBoards = new HashMap<>();
+        int looped = 0;
+        while (endPoint.getX()*(looped+1) < board.board.length && endPoint.getY()*(looped+1) < board.board[0].length) {
+            Integer[][] subBoard = new Integer[(int)endPoint.getX()+1][(int)endPoint.getY()+1];
+            int countGoodSpots =0;
+            for (int y = 0; y <= endPoint.getY(); y++) {
+                for (int x = 0; x <= endPoint.getX(); x++) {
+                    subBoard[x][y] = board.board[x+((int)endPoint.getX()*looped)][y+((int)endPoint.getY()*looped)];
+                    if (subBoard[x][y] == 1) {countGoodSpots++;}
+                }
+            }
+            looped++;
+            subBoards.put(subBoard, countGoodSpots);
+        }
+        int min = Collections.min(subBoards.values());
+        Optional<Map.Entry<Integer[][], Integer>> bestBoard = subBoards.entrySet().stream().filter(entry -> entry.getValue() == min).findFirst();
+        return bestBoard.get().getKey();
     }
 
 
@@ -155,7 +175,6 @@ public class CalculateMoves {
     private void removeImpossibleMoves() throws IOException, InterruptedException {
         ThreadPoolExecutor pool = new ThreadPoolExecutor(8, 8, 0, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
         int threadCount = board.bombs.size();
-        //Thread[] threads = new Thread[threadCount];
 
         for (int i=0;i<threadCount;i++) {
             Point bomb = board.bombs.get(i);
@@ -169,15 +188,9 @@ public class CalculateMoves {
                 }
                 setMovesFailed(sb.toString());
             }});
-            //threads[i].start();
         }
         pool.shutdown();
         pool.awaitTermination(30,TimeUnit.SECONDS);
-
-        //for (int i=0;i<threadCount;i++) {
-            //threads[i].join();
-
-        //}
     }
 
     public String calculatePossible(String moves, Boolean testing) {
@@ -229,7 +242,7 @@ public class CalculateMoves {
                             System.out.write(("\rRemaining Possible Moves: " + String.valueOf(numberOfPossibleRemaining)).getBytes());
                             prevNumberOfPossibleRemainingPrinted.set(numberOfPossibleRemaining.get());
                         }
-                        if (numberOfPossibleRemaining.get() < 100) {
+                        if (numberOfPossibleRemaining.get() < 500000) {
                             System.out.write(("\rRemaining Possible Moves: " + String.valueOf(numberOfPossibleRemaining)).getBytes());
                             prevNumberOfPossibleRemainingPrinted.set(numberOfPossibleRemaining.get());
                             stopThreads = true;

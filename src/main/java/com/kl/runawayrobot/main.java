@@ -21,8 +21,12 @@ public class main {
 
     public static void start (String url) throws Exception {
         Document doc = Jsoup.connect(url).get();
-        String flashVars = findObject(doc);
-        //.select("object").first().children().attr("value");
+        String flashVars;
+        try {
+            flashVars = doc.select("object").first().children().attr("value");
+        } catch (NullPointerException e) {
+            flashVars = findObject(doc);
+        }
 
         Map<String, String> params = getParams(flashVars);
         /*Map<String, String> params = new HashMap<>();
@@ -51,6 +55,8 @@ public class main {
 
     private static String findObject(Node node) {
         String returnVal = null;
+
+
         for (int i = 0; i < node.childNodes().size();) {
             Node child = node.childNode(i);
             if (child.nodeName().equals("#comment")) {
