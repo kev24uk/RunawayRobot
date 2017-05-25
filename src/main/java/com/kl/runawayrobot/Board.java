@@ -46,61 +46,14 @@ public class Board {
         }
 
         BoardPreProcessor boardPreProcessor = new BoardPreProcessor();
-        board = boardPreProcessor.preProcessBoard(board);
+        boardPreProcessor.preProcessBoard(board);
 
         if (print) {
             System.out.println("Processed Board:");
             printBoard(false);
         }
 
-        //removeBombsNotNeededToCheck();
-
-
     }
-
-    private void removeBombsNotNeededToCheck() {
-        boolean removeBomb = true,removeBombX1 = true, removeBombX2 = true,removeBombY1 = true, removeBombY2 = true;
-        for (Iterator<Point> it = bombs.iterator(); it.hasNext();) {
-            removeBomb = true;
-            removeBombX1 = true;
-            removeBombX2 = true;
-            removeBombY1 = true;
-            removeBombY2 = true;
-            Point bomb = it.next();
-            for (int x =0;x < bomb.getX();x++) {
-                if (board[x][(int)bomb.getY()] == 1) {
-                    removeBombX1 = false;
-                    break;
-                }
-            }
-            for (int x = (int)bomb.getX()+1;x < board.length;x++) {
-                if (board[x][(int)bomb.getY()] == 1) {
-                    removeBombX2 = false;
-                    break;
-                }
-            }
-
-            for (int y =0;y < bomb.getY();y++) {
-                if (board[(int)bomb.getX()][y] == 1) {
-                    removeBombY1 = false;
-                    break;
-                }
-            }
-            for (int y =(int)bomb.getY()+1;y < board[0].length;y++) {
-                if (board[(int)bomb.getX()][y] == 1) {
-                    removeBombY2 = false;
-                    break;
-                }
-            }
-            if ((!removeBombX1 && !removeBombX2) || (!removeBombY1 && !removeBombY2)) {
-                it.remove();
-                continue;
-            }
-        }
-
-    }
-
-
 
     public void resetPosition() {
         this.position.setLocation(0,0);
@@ -115,18 +68,26 @@ public class Board {
     }
 
     public Boolean canIMoveDown() {
-        if (position.getY() == board[0].length-1) {
+        return canIMoveDown(position);
+    }
+
+    public Boolean canIMoveDown(Point point) {
+        if (point.getY() == board[0].length-1) {
             return true;
-        } else if (board[(int)position.getX()][(int)position.getY() + 1] < 2) {
+        } else if (board[(int)point.getX()][(int)point.getY() + 1] < 2) {
             return true;
         }
         return false;
     }
 
     public Boolean canIMoveRight() {
-        if (position.getX() == board.length-1) {
+        return canIMoveRight(position);
+    }
+
+    public Boolean canIMoveRight(Point point) {
+        if (point.getX() == board.length-1) {
             return true;
-        } else if (board[(int)position.getX() + 1][(int)position.getY()] < 2) {
+        } else if (board[(int)point.getX() + 1][(int)point.getY()] < 2) {
             return true;
         }
         return false;
@@ -134,6 +95,6 @@ public class Board {
 
     public void printBoard(boolean includeBorders) {
         BoardPrinter boardPrinter = new BoardPrinter(this);
-        boardPrinter.printBoard(includeBorders);
+        boardPrinter.printBoard(includeBorders, false);
     }
 }

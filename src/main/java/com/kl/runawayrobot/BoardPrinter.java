@@ -1,8 +1,5 @@
 package com.kl.runawayrobot;
 
-/**
- * Created by Kev on 19/05/2017.
- */
 public class BoardPrinter {
 
     private Integer[][] board;
@@ -17,31 +14,43 @@ public class BoardPrinter {
 
     public BoardPrinter() {}
 
-    public void printBoard(Integer[][] board) {
+    public void printBoard(Integer[][] board, boolean isSubBoard) {
         this.board = board;
-        printBoard(false);
+        printBoard(false, isSubBoard);
     }
 
-    public void printBoard(boolean includeBorders) {
+    public void printBoard(boolean includeBorders, boolean isSubBoard) {
         System.out.println();
         for (int col = 0; col < this.board[0].length; col++) {
             if (includeBorders) {printRowBorder();}
-            for (int row = 0; row < this.board.length; row++) {
-                switch (board[row][col]) {
-                    case 0: //not checked
-                        printCell("o", includeBorders);
-                        break;
-                    case 1: //good path
-                        printCell("\033[32m+\033[0m", includeBorders);
-                        break;
-                    case 2: //probably bad
-                        printCell("\033[33m-\033[0m", includeBorders);
-                        break;
-                    case 3:
-                        printCell("\033[31mx\033[0m", includeBorders);
-                        break;
+            for (Integer[] row : this.board) {
+                if (isSubBoard && row[col] != null) {
+                    switch (row[col]) {
+                        case 1: //good path
+                            printCell("\033[32m+\033[0m", includeBorders);
+                            break;
+                        default:
+                            printCell("\033[31mx\033[0m", includeBorders);
+                            break;
+                    }
+                } else {
+                    if (row[col] != null) {
+                        switch (row[col]) {
+                            case 0: //not checked
+                                printCell("o", includeBorders);
+                                break;
+                            case 1: //good path
+                                printCell("\033[32m+\033[0m", includeBorders);
+                                break;
+                            case 2: //probably bad
+                                printCell("\033[33m-\033[0m", includeBorders);
+                                break;
+                            case 3:
+                                printCell("\033[31mx\033[0m", includeBorders);
+                                break;
+                        }
+                    }
                 }
-
             }
             if (includeBorders) {System.out.println("|");} else { System.out.println(); }
         }

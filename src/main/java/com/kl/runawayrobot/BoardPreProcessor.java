@@ -1,8 +1,5 @@
 package com.kl.runawayrobot;
 
-/**
- * Created by Kev on 24/05/2017.
- */
 public class BoardPreProcessor {
 
     private Integer[][] board;
